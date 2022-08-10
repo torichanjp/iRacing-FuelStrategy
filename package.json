@@ -4,16 +4,22 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "dev": "vite --mode=dev",
+    "build": "vue-tsc --noEmit && vite --mode=prd build",
     "preview": "vite preview"
   },
   "dependencies": {
+    "axios": "^0.27.2",
+    "extensible-custom-error": "^0.0.7",
+    "luxon": "^3.0.1",
     "vue": "^3.2.37",
     "vue-router": "4"
   },
   "devDependencies": {
+    "@types/luxon": "^3.0.0",
     "@vitejs/plugin-vue": "^3.0.0",
+    "sass": "^1.54.3",
+    "scss": "^0.2.4",
     "typescript": "^4.6.4",
     "vite": "^3.0.0",
     "vue-tsc": "^0.38.4"
