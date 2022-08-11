@@ -43,11 +43,11 @@
         </tr>
 
         <tr>
-          <td class="title"><label :for="elemName('stintPerTireSet')">タイヤ交換</label></td>
+          <td class="title"><label :for="elemName('planTireStint')">タイヤ交換</label></td>
           <td class="form">
-            <Parameter :value="stintPerTireSet"
-                       name="stintPerTireSet"
-                       @update:value="stintPerTireSet = $event"/>
+            <Parameter :value="planTireStint"
+                       name="planTireStint"
+                       @update:value="planTireStint = $event"/>
           </td>
           <td class="unit">スティント毎</td>
         </tr>
@@ -117,7 +117,7 @@ const elemNames = {
   targetLapTime: 'targetLapTime',
   targetFuelConsumption: 'targetFuelConsumption',
   fullFuel: 'fullFuel',
-  stintPerTireSet: 'stintPerTireSet',
+  planTireStint: 'planTireStint',
   pitThroughTime: 'pitThroughTime',
   refillFuelTime: 'refillFuelTime',
   tireReplacementTime: 'tireReplacementTime',
@@ -175,13 +175,13 @@ export default {
         this.$emit('update:param', {fullFuel: parseInt(value)})
       }
     },
-    stintPerTireSet: {
+    planTireStint: {
       get () {
-        return this.param.stintPerTireSet
+        return this.param.planTireStint
       },
       set (value) {
-        console.debug('stintPerTireSet set: ' + value)
-        this.$emit('update:param', {stintPerTireSet: parseInt(value)})
+        console.debug('planTireStint set: ' + value)
+        this.$emit('update:param', {planTireStint: parseInt(value)})
       }
     },
     pitThroughTime: {

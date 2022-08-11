@@ -245,4 +245,15 @@ export default class DateLib {
             .setZone('UTC')
             .toLocaleString({minute: '2-digit', second: '2-digit'})
     }
+
+    static MSToSec (ms: string) {
+        if (!ms.includes(':')) {
+            return parseInt(ms)
+        }
+        const elem = ms.split(':')
+        if (elem.length !== 2) {
+            return -1
+        }
+        return parseInt(elem[0]) * 60 + parseInt(elem[1])
+    }
 }

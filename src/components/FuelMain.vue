@@ -27,9 +27,18 @@
           <td>{{ fmtFloat(lap.planFuelLevel) }}</td>
           <td>{{ lap.planPitOut ? '●' : '' }}</td>
           <td>{{ lap.planChangeTires ? '●' : '' }}</td>
-          <td>{{ lapTime(lap.planLapTime, idx) }}</td>
-          <td>{{ planFuelConsumption(lap.planFuelConsumption, idx) }}</td>
-          <td>{{ stintPerTireSet(lap.stintPerTireSet, idx) }}</td>
+          <td><input type="text"
+                     :value="lapTime(lap.planLapTime, idx)"
+                     @change="setParamForLap('lapTime', idx, $event.target.value)"/>
+          </td>
+          <td><input type="text"
+                     :value="planFuelConsumption(lap.planFuelConsumption, idx)"
+                     @change="setParamForLap('fuelConsumption', idx, parseFloat($event.target.value))"/>
+          </td>
+          <td><input type="text"
+                     :value="planTireStint(lap.planTireStint, idx)"
+                     @change="setParamForLap('planTireStint', idx, parseInt($event.target.value))"/>
+          </td>
         </tr>
       </tbody>
     </table>
@@ -56,7 +65,9 @@ export default {
     query: { type: Object, required: true }
   },
   data() {
-    return {}
+    return {
+      paramForLaps: []
+    }
   },
   setup(props) {
     const query = props.query
@@ -99,6 +110,29 @@ export default {
     }
   },
   methods: {
+    setParamForLap (key, index, value) {
+      console.debug(value)
+      // 文字列で「:」を含む場合は秒数に変換
+      if (typeof value === 'string' && value.includes(':')) {
+        console.debug(value)
+        value = DateLib.MSToSec(value)
+      }
+      // ラップ情報はあるはず
+      if (!this.laps?.[index]) {
+        return
+      }
+      const lap = this.laps[index].lap
+      // 対象ラップがなかったら新規作成する
+      let param = this.paramForLaps.find(v => v.lap === lap)
+      if (!param) {
+        param = {
+          lap
+        }
+        this.paramForLaps.push(param)
+      }
+      param[key] = value
+      this.remakeLaps(this.paramForLaps)
+    },
     mergeParam (value) {
       console.debug(`mergeParam: ${value}`)
       Object.keys(value).forEach(key => {
@@ -122,12 +156,15 @@ export default {
      * @param index
      */
     lapTime (time, index) {
+      if (index > 0) {
+        console.debug(this.laps[index].planLapTime, this.laps[index-1].planLapTime)
+      }
       if (index === 0
-          || this.laps[index].targetLapTime !== this.laps[index-1].targetLapTime
+          || this.laps[index].planLapTime !== this.laps[index-1].planLapTime
       ) {
         return this.secToMS(time)
       }
-      return ''
+      return '↑'
     },
     planFuelConsumption (v, index) {
       if (index === 0
@@ -135,16 +172,18 @@ export default {
       ) {
         return this.fmtFloat(v)
       }
+      return '↑'
     },
-    stintPerTireSet (v, index) {
+    planTireStint (v, index) {
       if (index === 0
-          || this.laps[index].stintPerTireSet !== this.laps[index-1].stintPerTireSet
+          || this.laps[index].planTireStint !== this.laps[index-1].planTireStint
       ) {
         return v
       }
+      return '↑'
     },
-    remakeLaps () {
-      this.laps = Lap.makePlanLaps(this.param)
+    remakeLaps (paramForLaps = undefined) {
+      this.laps = Lap.makePlanLaps(this.param, paramForLaps)
     }
   }
 }

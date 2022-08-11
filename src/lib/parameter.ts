@@ -18,7 +18,7 @@ class Parameter {
     /**
      * タイヤ１セットで走るスティント数（スティント/タイヤセット）
      */
-    stintPerTireSet: number
+    planTireStint: number
     /**
      * ピットスルーのタイムロス（秒）
      */
@@ -62,7 +62,7 @@ class Parameter {
         targetLapTime: number,
         targetFuelConsumption: number,
         fullFuel: number,
-        stintPerTireSet: number,
+        planTireStint: number,
         pitThroughTime: number,
         refillFuelTime: number,
         tireReplacementTime: number,
@@ -74,7 +74,7 @@ class Parameter {
         this.targetLapTime = targetLapTime
         this.targetFuelConsumption = targetFuelConsumption
         this.fullFuel = fullFuel
-        this.stintPerTireSet = stintPerTireSet
+        this.planTireStint = planTireStint
         this.pitThroughTime = pitThroughTime
         this.refillFuelTime = refillFuelTime
         this.tireReplacementTime = tireReplacementTime

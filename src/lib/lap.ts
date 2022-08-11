@@ -1,5 +1,12 @@
 import Parameter from './parameter'
 
+export type ParamForLap = {
+    lap: number
+    lapTime?: number
+    fuelConsumption?: number
+    planTireStint?: number
+}
+
 export default class Lap {
     defaultParam: Parameter
     lap: number
@@ -9,14 +16,14 @@ export default class Lap {
     planFuelLevel: number
     planPitOut: boolean
     planChangeTires: boolean
-    stintPerTireSet: number
+    planTireStint: number
 
     /**
      * タイヤ１セットでの走行スティント数
      *
      * 交換直後は、1
      */
-    planTireStint: number = 1
+    planTireStintAcc: number = 1
 
     resultRemainingTime: number = -1
     resultFuelLevel: number = -1
@@ -33,8 +40,8 @@ export default class Lap {
                 planFuelLevel: number,
                 planPitOut: boolean,
                 planChangeTires: boolean,
-                stintPerTireSet: number,
-                planTireStint: number = 1
+                planTireStint: number,
+                planTireStintAcc: number = 1
     ) {
         this.defaultParam = defaultParam;
         this.lap = lap;
@@ -44,30 +51,41 @@ export default class Lap {
         this.planFuelLevel = planFuelLevel;
         this.planPitOut = planPitOut;
         this.planChangeTires = planChangeTires;
-        this.stintPerTireSet = stintPerTireSet
         this.planTireStint = planTireStint
+        this.planTireStintAcc = planTireStintAcc
     }
 
-    public cloneNextLap (): Lap | null {
+    /**
+     * 次のラップの情報を計算し、新規Lapインスタンスとして返す。
+     *
+     * @param {ParamForLap} paramForLaps? ラップ毎のパラメータ
+     */
+    public cloneNextLap (paramForLaps?: ParamForLap): Lap | null {
         if (this.planRemainingTime < 0) {
             return null
         }
+
+        // ラップ毎設定がある場合は上書き
+        this.planLapTime = paramForLaps?.lapTime ?? this.planLapTime
+        this.planFuelConsumption = paramForLaps?.fuelConsumption ?? this.planFuelConsumption
+        this.planTireStint = paramForLaps?.planTireStint ?? this.planTireStint
 
         // 残り燃料計算
         let fuelLevel = this.planFuelLevel - this.planFuelConsumption
         let pitOut = false
         let tireChange = false
-        let planTireStint = this.planTireStint
+        let planTireStintAcc = this.planTireStintAcc
 
-        if (fuelLevel < this.defaultParam.fuelMinKeep) {
+        // 燃料は、１周分＋最低燃料が残っている必要あり
+        if (fuelLevel < this.planFuelConsumption + this.defaultParam.fuelMinKeep) {
             fuelLevel = this.defaultParam.fullFuel
             pitOut = true
             // 規定スティント走っていたらタイヤ交換
-            if (this.defaultParam.stintPerTireSet === this.planTireStint) {
+            if (this.planTireStint <= this.planTireStintAcc) {
                 tireChange = true
-                planTireStint = 1
+                planTireStintAcc = 1
             } else {
-                planTireStint++
+                planTireStintAcc++
             }
         }
         // 残り時間計算
@@ -85,27 +103,29 @@ export default class Lap {
             fuelLevel,
             pitOut,
             tireChange,
-            this.stintPerTireSet,
-            planTireStint
+            this.planTireStint,
+            planTireStintAcc
         )
     }
 
     /**
      * デフォルトパラメータからラップ配列を作る
      */
-    public static makePlanLaps (param: Parameter): Array<Lap> {
+    public static makePlanLaps (param: Parameter, paramForLaps?: ParamForLap[]): Array<Lap> {
         const laps: Array<Lap> = []
+        // ラップ毎のパラメータがある場合はそちらを優先する
+        const paramForLap = paramForLaps?.find(v => v.lap === 1)
         // １ラップ目を作る
         const firstLap = new Lap(
             param,
             1,
-            param.targetLapTime,
-            param.targetFuelConsumption,
+            paramForLap?.lapTime ?? param.targetLapTime,
+            paramForLap?.fuelConsumption ?? param.targetFuelConsumption,
             param.raceTime,
             param.fullFuel,
             false,
             false,
-            param.stintPerTireSet,
+            paramForLap?.planTireStint ?? param.planTireStint,
             1
         )
         laps.push(firstLap)
@@ -114,7 +134,8 @@ export default class Lap {
         let i = 0
 
         while (i++ < 1000) { // 保険で1000周までで抜ける
-            const lap = curLap.cloneNextLap()
+            const param = paramForLaps?.find(v => v.lap === curLap.lap)
+            const lap = curLap.cloneNextLap(param)
             if (lap == null) {
                 break;
             }
