@@ -43,11 +43,11 @@
         </tr>
 
         <tr>
-          <td class="title"><label :for="elemName('planTireStint')">タイヤ交換</label></td>
+          <td class="title"><label :for="elemName('tireStint')">タイヤ交換</label></td>
           <td class="form">
-            <Parameter :value="planTireStint"
-                       name="planTireStint"
-                       @update:value="planTireStint = $event"/>
+            <Parameter :value="tireStint"
+                       name="tireStint"
+                       @update:value="tireStint = $event"/>
           </td>
           <td class="unit">スティント毎</td>
         </tr>
@@ -117,7 +117,7 @@ const elemNames = {
   targetLapTime: 'targetLapTime',
   targetFuelConsumption: 'targetFuelConsumption',
   fullFuel: 'fullFuel',
-  planTireStint: 'planTireStint',
+  tireStint: 'tireStint',
   pitThroughTime: 'pitThroughTime',
   refillFuelTime: 'refillFuelTime',
   tireReplacementTime: 'tireReplacementTime',
@@ -175,13 +175,13 @@ export default {
         this.$emit('update:param', {fullFuel: parseInt(value)})
       }
     },
-    planTireStint: {
+    tireStint: {
       get () {
-        return this.param.planTireStint
+        return this.param.tireStint
       },
       set (value) {
-        console.debug('planTireStint set: ' + value)
-        this.$emit('update:param', {planTireStint: parseInt(value)})
+        console.debug('tireStint set: ' + value)
+        this.$emit('update:param', {tireStint: parseInt(value)})
       }
     },
     pitThroughTime: {

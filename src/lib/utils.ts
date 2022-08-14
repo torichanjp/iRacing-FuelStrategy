@@ -453,7 +453,8 @@ const Utils = {
     },
     /**
      * 配列と配列をzipする（同じインデックスのvalueを関数fでマージする。
-     * 要素数が異なる場合は、xsの要素数になる。
+     * 要素数が異なる場合は、多い方の要素数になる。
+     * その場合、データがない方はnullになる。
      *
      * @param {Array<*>} xs
      * @param {Array<*>} ys
@@ -462,7 +463,11 @@ const Utils = {
      * @example Utils.zip(xs, ys, (a, b) => {a, b}])
      */
     zip (xs: Array<any>, ys: Array<any>, f: (a: any, b: any) => any) {
-        return xs.map((e, i) => f(e, ys[i]))
+        if (xs.length >= ys.length) {
+            return xs.map((e, i) => f(e, ys?.[i] ?? null))
+        } else {
+            return ys.map((e, i) => f(xs?.[i] ?? null, e))
+        }
     }
 }
 

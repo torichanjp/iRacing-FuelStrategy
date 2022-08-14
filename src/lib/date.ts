@@ -239,21 +239,30 @@ export default class DateLib {
         return DateTime.fromMillis(sec * 1000).setZone('UTC').toLocaleString(DateTime.TIME_24_WITH_SECONDS)
     }
 
-    static secToMS (sec: number) {
+    static secToMS (sec: number, withMillisecond: boolean = false) {
+        const format = 'm:ss' + (withMillisecond ? '.SSS' : '')
+        // const format: {[key: string]: any} = {minute: '2-digit', second: '2-digit'}
+        // if (withMillisecond) {
+        //     format.millisecond = '3-digit'
+        // }
         return DateTime
             .fromMillis(sec * 1000)
             .setZone('UTC')
-            .toLocaleString({minute: '2-digit', second: '2-digit'})
+            .toFormat(format)
+            // .toLocaleString(format)
     }
 
-    static MSToSec (ms: string) {
+    static HMSToSec (ms: string) {
         if (!ms.includes(':')) {
             return parseInt(ms)
         }
         const elem = ms.split(':')
-        if (elem.length !== 2) {
+        if (elem.length === 2) {
+            return parseInt(elem[0]) * 60 + parseInt(elem[1])
+        } else if (elem.length === 3) {
+            return parseInt(elem[0]) * 3600 + parseInt(elem[1]) * 60 + parseInt(elem[2])
+        } else {
             return -1
         }
-        return parseInt(elem[0]) * 60 + parseInt(elem[1])
     }
 }
