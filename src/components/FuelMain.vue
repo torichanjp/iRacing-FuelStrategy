@@ -131,11 +131,11 @@ export default {
   props: {
     query: { type: Object, required: true }
   },
-  data() {
-    return {
-      paramForLaps: {plan: [], result: []}
-    }
-  },
+  // data() {
+  //   return {
+  //     paramForLaps: {plan: [], result: []}
+  //   }
+  // },
   setup(props) {
     const query = props.query
 
@@ -156,6 +156,8 @@ export default {
     const resultLaps = ref([])
     // 計画用ラップ情報
     const bothLaps = ref({plan: [], result: []})
+    // ラップ単位の設定
+    const paramForLaps = ref({plan: [], result: []})
 
     const getLapsPlan = () => {
       return Lap.makeLapsPlan(param.value)
@@ -169,6 +171,19 @@ export default {
 
     const zipBothLaps = (plan, result) => {
       return Utils.zip(plan, result, (plan, result) => { return {plan, result} } )
+    }
+
+    const remakeLaps = async (target, _paramForLaps = undefined) => {
+      let plan
+      let result
+      if (target === 'plan') {
+        plan = Lap.makeLapsPlan(param, _paramForLaps)
+        bothLaps.value[target] = plan
+        paramForLaps.value.plan.splice(0)
+      } else if (target === 'result') {
+        result = await getLapsResult(_paramForLaps)
+        bothLaps.value[target] = result
+      }
     }
 
     // 実績をAWSからダウンロードしてlapsResultにセット、実績用データを作成
@@ -189,11 +204,19 @@ export default {
       Log.debug('onMounted')
     })
 
+    // 定期的に更新する
+    setInterval(() => {
+      remakeLaps('result', paramForLaps.result)
+      console.log('called setInterval')
+    }, 60000)
+
     return {
       param,
       getLapsPlan,
       getLapsResult,
       bothLaps,
+      paramForLaps,
+      remakeLaps,
       zipBothLaps
     }
   },
@@ -293,18 +316,6 @@ export default {
     },
     driverId (v, index) {
       return v !== -1 ? v : '---'
-    },
-    async remakeLaps (target, paramForLaps = undefined) {
-      let plan
-      let result
-      if (target === 'plan') {
-        plan = Lap.makeLapsPlan(this.param, paramForLaps)
-        this.bothLaps[target] = plan
-        this.paramForLaps.plan.splice(0)
-      } else if (target === 'result') {
-        result = await this.getLapsResult(paramForLaps)
-        this.bothLaps[target] = result
-      }
     },
     resultClass (isPlan) {
       return isPlan ? '' : ['result-row']
