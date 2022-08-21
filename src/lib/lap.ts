@@ -207,11 +207,11 @@ export default class Lap {
             acc[lap.Lap] = {
                 // Fuel、RemainingTimeは、end of lapからbeginning of lapにしたいので1周づつずらす
                 lap: l,
-                beginningOfFuel: l === 1 ? fullFuel : acc?.[l - 1].endOfFuel ?? -1,
+                beginningOfFuel: l === 1 ? fullFuel : acc?.[l - 1]?.endOfFuel ?? -1,
                 endOfFuel: lap.Fuel,
                 driverId: lap?.DriverId ?? -1,
                 rTime: DateLib.HMSToSec(lap.RTime),
-                remainingTime: l === 1 ? rTime : acc[l - 1].rTime,
+                remainingTime: l === 1 ? rTime : acc[l - 1]?.rTime ?? -1,
                 lapTimeResult: (lap?.LapTime ?? -1) / 1000, // milli秒を秒に変換
                 pitIn: lap?.PitIn ?? false,
                 pitOut: lap?.PitOut ?? false

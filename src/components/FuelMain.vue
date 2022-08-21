@@ -36,7 +36,7 @@
       <tbody>
         <tr v-for="(lap, idx) in laps" :key="lap.plan?.lap ?? lap.result.lap">
 
-          <td v-if="lap['plan'] == null" colspan="8">&nbsp;</td>
+          <td v-if="lap['plan'] == null" colspan="7">&nbsp;</td>
 
           <!-- 計画 -->
 
