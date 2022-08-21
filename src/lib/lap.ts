@@ -25,8 +25,10 @@ type AwsNormalizedData = {
     lap: number
     remainingTime: number
     beginningOfFuel: number
+    endOfFuel: number
     driverId: number
     lapTimeResult: number
+    pitIn: boolean
     pitOut: boolean
 }
 
@@ -39,6 +41,8 @@ export default class Lap {
     fuelConsumptionResult: number
     remainingTime: number
     fuelLevel: number
+    endOfFuel: number
+    pitIn: boolean
     pitOut: boolean
     changeTires: boolean
     tireStint: number
@@ -59,6 +63,8 @@ export default class Lap {
                 fuelConsumption: number,
                 remainingTime: number,
                 fuelLevel: number,
+                endOfFuel: number,
+                pitIn: boolean,
                 pitOut: boolean,
                 changeTires: boolean,
                 tireStint: number,
@@ -74,6 +80,8 @@ export default class Lap {
         this.fuelConsumption = fuelConsumption;
         this.remainingTime = remainingTime;
         this.fuelLevel = fuelLevel;
+        this.endOfFuel = endOfFuel;
+        this.pitIn = pitIn;
         this.pitOut = pitOut;
         this.changeTires = changeTires;
         this.tireStint = tireStint
@@ -117,6 +125,8 @@ export default class Lap {
                 tireStintAcc++
             }
         }
+        // フィニッシュラインでの残量
+        const endOfFuel = fuelLevel - this.fuelConsumption
         // 残り時間計算
         const basicRemainingTime = this.remainingTime - this.lapTime
         const remainingTime = basicRemainingTime
@@ -130,6 +140,8 @@ export default class Lap {
             this.fuelConsumption,
             remainingTime,
             fuelLevel,
+            endOfFuel,
+            false,
             pitOut,
             tireChange,
             this.tireStint,
@@ -152,10 +164,11 @@ export default class Lap {
             paramForLap?.fuelConsumption ?? param.targetFuelConsumption,
             param.raceTime,
             param.fullFuel,
+            param.fullFuel - (paramForLap?.fuelConsumption ?? param.targetFuelConsumption),
             false,
             false,
-            paramForLap?.tireStint ?? param.tireStint,
-            1
+            false,
+            paramForLap?.tireStint ?? param.tireStint
         )
         laps.push(firstLap)
 
@@ -169,23 +182,18 @@ export default class Lap {
             if (lap == null) {
                 break;
             }
+
+            // このラップがピットアウトの場合は、前の周（最後の要素）をピットインにする
+            const lapLength = laps.length
+            if (lapLength > 0 && lap?.pitOut) {
+                laps[lapLength - 1].pitIn = true
+            }
+
             laps.push(lap)
             curLap = lap
         }
         return laps
     }
-
-    // public static mergeLapsAsResult (toLaps: Lap[], fromLaps: Lap[]): Lap[] {
-    //     fromLaps.forEach(fromLap => {
-    //         const toLap = toLaps.find(vv => vv.lap === fromLap.lap)
-    //         if (toLap) {
-    //             toLap.resultRemainingTime = fromLap.resultRemainingTime
-    //             toLap.resultFuelLevel = fromLap.resultFuelLevel
-    //             toLap.resultLapTime = fromLap.resultLapTime
-    //         }
-    //     })
-    //     return toLaps
-    // }
 
     private static normalizeAwsRowData(laps: AwsRawLap[], fullFuel: number, rTime: number): AwsNormalizedData[] {
         // ラップ: {Fuel, LapTime}でマップを作る
@@ -205,6 +213,7 @@ export default class Lap {
                 rTime: DateLib.HMSToSec(lap.RTime),
                 remainingTime: l === 1 ? rTime : acc[l - 1].rTime,
                 lapTimeResult: (lap?.LapTime ?? -1) / 1000, // milli秒を秒に変換
+                pitIn: lap?.PitIn ?? false,
                 pitOut: lap?.PitOut ?? false
             }
             return acc;
@@ -222,8 +231,10 @@ export default class Lap {
                     lap: -1,
                     remainingTime: 0,
                     beginningOfFuel: -1,
+                    endOfFuel: -1,
                     driverId: -1,
                     lapTimeResult: 0,
+                    pitIn: false,
                     pitOut: false
                 };
             }
@@ -232,8 +243,10 @@ export default class Lap {
                 lap: _lap.lap,
                 remainingTime: _lap.remainingTime,
                 beginningOfFuel: _lap.beginningOfFuel,
+                endOfFuel: _lap.endOfFuel,
                 driverId: _lap.driverId,
                 lapTimeResult: _lap.lapTimeResult,
+                pitIn: _lap.pitIn,
                 pitOut: _lap.pitOut
             };
         })
@@ -258,6 +271,8 @@ export default class Lap {
                 0,
                 v.remainingTime,
                 v.beginningOfFuel,
+                v.endOfFuel,
+                v.pitIn,
                 v.pitOut,
                 false,
                 0,
@@ -269,7 +284,7 @@ export default class Lap {
             )
         })
         // test
-        // laps.splice(5)
+        // laps.splice(10)
 
         // 最後のラップをクローンし、計画用パラメータをセットする。
         const lastLap = laps[laps.length-1]

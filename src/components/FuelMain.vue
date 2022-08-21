@@ -1,34 +1,36 @@
 <template>
   <div>
     <h1>Fuel - v2</h1>
-    <Parameters :param="param" @update:param="mergeParam"/>
-
-    <div>
-      <button @click="remakeLaps">ラップ表更新</button>
-    </div>
 
     <table>
       <thead>
         <tr>
-          <td class="header-plan" colspan="8">計画</td>
+          <td colspan="8">
+            <Parameters :param="param" @update:param="mergeParam"/>
+            <button class="button" @click="remakeLaps('plan')">ラップ表更新</button>
+          </td>
+          <td colspan="8">
+          </td>
+        </tr>
+        <tr>
+          <td class="header-plan" colspan="7">計画</td>
           <td class="header-result" colspan="8">実績</td>
         </tr>
         <tr>
           <td>ラップ</td>
           <td>残り時間</td>
           <td>燃料残量</td>
-          <td>ピットアウト</td>
           <td>タイヤ交換</td>
-          <td>目標ラップタイム</td>
-          <td>目標燃費</td>
-          <td>目標タイヤスティント</td>
+          <td>ラップタイム</td>
+          <td>燃費</td>
+          <td>タイヤスティント</td>
           <td>ラップ</td>
           <td>残り時間実績</td>
           <td>燃料残量実績</td>
           <td>ドライバーID</td>
           <td>ラップタイム</td>
           <td>燃費</td>
-          <td>目標タイヤスティント</td>
+          <td>タイヤスティント</td>
         </tr>
       </thead>
       <tbody>
@@ -36,19 +38,27 @@
 
           <td v-if="lap['plan'] == null" colspan="8">&nbsp;</td>
 
-          <td v-if="lap['plan']">{{ lap['plan']?.lap ?? lap['result'].lap }}</td>
+          <!-- 計画 -->
+
+          <!-- ラップ -->
+          <td v-if="lap['plan']" :class="lapRowClass(lap['plan'])">{{ lap['plan']?.lap ?? lap['result'].lap }}</td>
+          <!-- 残り時間 -->
           <td v-if="lap['plan']">{{ secToHMS(lap['plan']?.remainingTime ?? 0) }}</td>
-          <td v-if="lap['plan']">{{ fmtFloat(lap['plan']?.fuelLevel ?? 0) }}</td>
-          <td v-if="lap['plan']">{{ (lap['plan']?.pitOut ?? false) ? '●' : '' }}</td>
+          <!-- 燃料残量 -->
+          <td v-if="lap['plan']">{{ fmtFloat(lap['plan']?.fuelLevel ?? 0) }}<span class="arrow"> → </span>{{ fmtFloat(lap['plan']?.endOfFuel ?? 0) }}</td>
+          <!-- タイヤ交換 -->
           <td v-if="lap['plan']">{{ (lap['plan']?.changeTires ?? false) ? '●' : '' }}</td>
+          <!-- ラップタイム -->
           <td v-if="lap['plan']"><input type="text"
                      :value="lapTime(lap['plan']?.lapTime ?? 1, idx)"
                      @change="setParamForLap('lapTime', idx, $event.target.value)"/>
           </td>
+          <!-- 燃料消費量 -->
           <td v-if="lap['plan']"><input type="text"
                      :value="fuelConsumption(lap['plan']?.fuelConsumption ?? 1, idx)"
                      @change="setParamForLap('fuelConsumption', idx, parseFloat($event.target.value))"/>
           </td>
+          <!-- タイヤスティント -->
           <td v-if="lap['plan']"><input type="text"
                      :value="tireStint(lap['plan']?.tireStint ?? 1, idx)"
                      @change="setParamForLap('tireStint', idx, parseInt($event.target.value))"/>
@@ -58,11 +68,13 @@
           <td v-if="lap['result'] == null" colspan="7">&nbsp;</td>
 
           <!-- ラップ -->
-          <td v-if="lap['result']" :class="resultClass(lap['result']?.isPlan)">{{ lap['result']?.lap ?? lap['plan'].lap }}</td>
+          <td v-if="lap['result']" :class="lapRowClass(lap['result'])">{{ lap['result']?.lap ?? lap['plan'].lap }}</td>
           <!-- 残り時間 -->
           <td v-if="lap['result']" :class="resultClass(lap['result']?.isPlan)">{{ secToHMS(lap['result']?.remainingTime ?? -1)}}</td>
           <!-- 燃料残量 -->
-          <td v-if="lap['result']" :class="resultClass(lap['result']?.isPlan)">{{ fmtFloat(lap['result']?.fuelLevel ?? -1) }}</td>
+          <td v-if="lap['result']" :class="resultClass(lap['result']?.isPlan)">
+            {{ fmtFloat(lap['result']?.fuelLevel ?? -1) }}<span class="arrow"> → </span>{{ fmtFloat(lap['result']?.endOfFuel ?? 0) }}
+          </td>
           <!-- ドライバーID -->
           <td v-if="lap['result']" :class="resultClass(lap['result']?.isPlan)">{{ driverId(lap['result']?.driverId ?? -1, idx) }}</td>
           <!-- ラップタイム -->
@@ -288,26 +300,58 @@ export default {
       if (target === 'plan') {
         plan = Lap.makeLapsPlan(this.param, paramForLaps)
         this.bothLaps[target] = plan
+        this.paramForLaps.plan.splice(0)
       } else if (target === 'result') {
         result = await this.getLapsResult(paramForLaps)
         this.bothLaps[target] = result
       }
     },
     resultClass (isPlan) {
-      return isPlan ? '' : 'resultRow'
+      return isPlan ? '' : ['result-row']
+    },
+    lapRowClass (lap) {
+      const classes = []
+      if (!(lap?.isPlan ?? false)) {
+        classes.push('result-row')
+      }
+      if (lap?.pitIn ?? false) {
+        classes.push('pit-in')
+      }
+      if (lap?.pitOut ?? false) {
+        classes.push('pit-out')
+      }
+      return classes
     }
   }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
 .header-plan {
   background-color: #535bf2;
 }
 .header-result {
   background-color: darkmagenta;
 }
-td.resultRow {
-  color: chartreuse;
+
+button {
+  margin: 1em auto;
+}
+td {
+  &.pit-in {
+    background-color: darkorchid;
+  }
+  &.pit-out {
+    background-color: darkgreen;
+  }
+  input[type="text"] {
+    width: 8em;
+  }
+  &.result-row {
+    color: chartreuse;
+  }
+  span.arrow {
+    color: darkgray;
+  }
 }
 </style>
