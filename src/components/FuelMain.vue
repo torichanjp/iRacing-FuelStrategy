@@ -10,6 +10,7 @@
             <button class="button" @click="remakeLaps('plan')">ラップ表更新</button>
           </td>
           <td colspan="8">
+            <DriverSummary :driverSummary="driverSummary"/>
           </td>
         </tr>
         <tr>
@@ -115,6 +116,8 @@
 <script type="ts">
 
 import DateLib from '../lib/date'
+import DriverSummary from './Summary/DriverSummary.vue'
+import Driver from '../lib/summary/driver'
 import LapApi from '../lib/api/lap'
 import Log from '../lib/log'
 import ParameterLib from '../lib/parameter'
@@ -122,18 +125,23 @@ import {ref, onMounted, watch, reactive} from 'vue'
 import Parameters from './Parameter/Parameters.vue'
 import Lap from '../lib/lap'
 import Utils from '../lib/utils'
+import UtilMixin from './Lib/Util.vue'
 
 export default {
   name: 'FuelMain',
+  mixins: [
+    UtilMixin
+  ],
   components: {
-    Parameters
+    Parameters,
+    DriverSummary
   },
   props: {
     query: { type: Object, required: true }
   },
   // data() {
   //   return {
-  //     paramForLaps: {plan: [], result: []}
+  //
   //   }
   // },
   setup(props) {
@@ -158,6 +166,8 @@ export default {
     const bothLaps = ref({plan: [], result: []})
     // ラップ単位の設定
     const paramForLaps = ref({plan: [], result: []})
+    // ドライバー集計データ
+    const driverSummary = ref({all: null, withoutPit: null})
 
     const getLapsPlan = () => {
       return Lap.makeLapsPlan(param.value)
@@ -174,6 +184,7 @@ export default {
     }
 
     const remakeLaps = async (target, _paramForLaps = undefined) => {
+      Log.info('FuelMain:setup:remakeLaps')
       let plan
       let result
       if (target === 'plan') {
@@ -191,9 +202,30 @@ export default {
 
     // lapsResult.value = Lap.makeLapsResult(param.value, awsData)
 
+    const setDriverSummary = () => {
+      if (!Array.isArray(bothLaps.value.result)) {
+        Log.info('FuelMain:setup:setDriverSummary', 'not Array')
+        return
+      }
+
+      Log.info('FuelMain:setup:setDriverSummary', 'Set driverSummary')
+      const driver = new Driver(bothLaps.value.result.filter(v => !v.isPlan))
+      Log.info('FuelMain:setup:setDriverSummary', 'Driver', driver)
+      driverSummary.value = {
+        all: driver.AverageAllByDriver(),
+        withoutPit: driver.AverageWithoutPit()
+      }
+    }
+
+    watch(bothLaps, v => {
+      Log.info('FuelMain:setup:watch:bothLaps', v)
+      setDriverSummary()
+    })
+
     // パラメータからラップ計画を作る
     const lapsPlan = getLapsPlan()
     const lapsResult = getLapsResult().then(v => {
+      Log.info('FuelMain:setup:lapsResult.then')
       bothLaps.value = {plan: lapsPlan, result: v}
     })
     .catch(err => {
@@ -201,7 +233,7 @@ export default {
     })
 
     onMounted(() => {
-      Log.debug('onMounted')
+      Log.debug('FuelMain:onMounted')
     })
 
     // 定期的に更新する
@@ -212,6 +244,7 @@ export default {
 
     return {
       param,
+      driverSummary,
       getLapsPlan,
       getLapsResult,
       bothLaps,
@@ -257,19 +290,6 @@ export default {
         console.log(`key: ${key}, value: ${value[key]}`)
         this.param[key] = value[key]
       })
-    },
-    secToHMS (sec) {
-      const _sec = sec > 0 ? sec : 0
-      return DateLib.secToHMS(_sec)
-    },
-    secToMS (sec) {
-      return DateLib.secToMS(sec)
-    },
-    fmtFloat (num, digit = 2) {
-      if (num == null) {
-        return '0.00'
-      }
-      return num.toFixed(digit)
     },
     /**
      * 目標ラップタイムが同じ場合は表示しない（テキストボックスで変更できるようにする）
