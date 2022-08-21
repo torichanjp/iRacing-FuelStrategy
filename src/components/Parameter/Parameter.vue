@@ -1,6 +1,7 @@
 <template>
   <div>
     <input
+        type="text"
         :name="elemName"
         :id="elemName"
         :value="value"
