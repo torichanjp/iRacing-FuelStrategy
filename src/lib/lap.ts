@@ -196,6 +196,9 @@ export default class Lap {
     }
 
     private static normalizeAwsRowData(laps: AwsRawLap[], fullFuel: number, rTime: number): AwsNormalizedData[] {
+        if (laps.length === 0) {
+            return []
+        }
         // ラップ: {Fuel, LapTime}でマップを作る
         const _laps = laps
             .sort(
@@ -257,6 +260,9 @@ export default class Lap {
         // 例えばラップ1が "Fuel": 95.0, "RTime": "5:50:40" とすると、
         // 両者ともラップ1終了時点の値なので、ラップ2開始時点のデータにする必要があるため
         const awsData = Lap.normalizeAwsRowData(awsRawData, defaultParam.fullFuel, defaultParam.raceTime)
+        if (awsData.length === 0) {
+            return []
+        }
 
         // ラップデータを作る
         const awsDataLen = awsData.length
