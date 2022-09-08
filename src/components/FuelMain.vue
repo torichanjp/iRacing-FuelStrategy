@@ -190,7 +190,10 @@ export default {
       if (target === 'plan') {
         plan = Lap.makeLapsPlan(param.value, _paramForLaps)
         bothLaps.value[target] = plan
-        paramForLaps.value.plan.splice(0)
+        // 更新ボタンを押した時はラップ毎設定値はクリアする
+        if (!_paramForLaps) {
+          paramForLaps.value.plan.splice(0)
+        }
       } else if (target === 'result') {
         result = await getLapsResult(_paramForLaps)
         bothLaps.value[target] = result
