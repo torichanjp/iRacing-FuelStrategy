@@ -160,15 +160,15 @@ export default class Lap {
         const firstLap = baseLap ?? new Lap(
             param,
             1,
-            paramForLap?.lapTime ?? param.targetLapTime,
-            paramForLap?.fuelConsumption ?? param.targetFuelConsumption,
+            paramForLap?.lapTime || param.targetLapTime,
+            paramForLap?.fuelConsumption || param.targetFuelConsumption,
             param.raceTime,
             param.fullFuel,
-            param.fullFuel - (paramForLap?.fuelConsumption ?? param.targetFuelConsumption),
+            param.fullFuel - (paramForLap?.fuelConsumption || param.targetFuelConsumption),
             false,
             false,
             false,
-            paramForLap?.tireStint ?? param.tireStint
+            paramForLap?.tireStint || param.tireStint
         )
         laps.push(firstLap)
 

@@ -188,7 +188,7 @@ export default {
       let plan
       let result
       if (target === 'plan') {
-        plan = Lap.makeLapsPlan(param, _paramForLaps)
+        plan = Lap.makeLapsPlan(param.value, _paramForLaps)
         bothLaps.value[target] = plan
         paramForLaps.value.plan.splice(0)
       } else if (target === 'result') {
@@ -263,8 +263,8 @@ export default {
       // 文字列で「:」を含む場合は秒数に変換
       console.debug("[setParamForLap]", key, index, value, target)
       if (typeof value === 'string' && value.includes(':')) {
-        console.debug("[setParamForLap]", value)
         value = DateLib.HMSToSec(value)
+        console.debug("[setParamForLap]", value, "Seconds")
       } else {
         console.error('value is not a string or not include ":"')
       }
