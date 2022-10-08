@@ -25,10 +25,10 @@ export default class Driver {
     }
 
     /**
-     * ピットイン・アウト以外の有効なラップの平均(sec)をドライバー毎に返す
+     * 1ラップ目とピットイン・アウト以外の有効なラップの平均(sec)をドライバー毎に返す
      */
     public AverageWithoutPit (): ObjNumberNumber {
-        return this.AverageByDriver(l => l.lapTimeResult > 0 && !l.pitIn && !l.pitOut)
+        return this.AverageByDriver(l => l.lap >= 2 && l.lapTimeResult > 0 && !l.pitIn && !l.pitOut)
     }
 
     /**
