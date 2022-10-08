@@ -8,18 +8,18 @@
           <tr>
             <td>ドライバーID</td>
             <td>有効ラップ</td>
-            <td>ピットストップ除外</td>
           </tr>
         </thead>
         <tbody>
           <tr v-for="d in drivers" :key="d.driverId">
             <td>{{ d.driverId }}</td>
-            <td>{{ secToMS(d.all, true) }}</td>
             <td>{{ secToMS(d.withoutPit, true) }}</td>
           </tr>
         </tbody>
       </table>
     </div>
+
+    <p>※有効ラップはピットイン/アウトのラップと1ラップ目を除外した平均</p>
 
   </div>
 </template>
@@ -28,7 +28,6 @@
 import { defineComponent } from 'vue'
 import {onMounted, toRefs, watch} from 'vue'
 import UtilMixin from '../Lib/Util.vue'
-import Util from '../Lib/Util.vue'
 
 // import Lap from '../../lib/lap'
 
