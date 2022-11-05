@@ -130,7 +130,7 @@ export default class Lap {
         // 残り時間計算
         const basicRemainingTime = this.remainingTime - this.lapTime
         const remainingTime = basicRemainingTime
-            - (pitOut ? this.defaultParam.pitThroughTime : 0)
+            - (pitOut ? this.defaultParam.pitThroughTime + this.defaultParam.refillFuelTime : 0)
             - (tireChange ? this.defaultParam.tireReplacementTime : 0)
 
         return new Lap(
